@@ -4,13 +4,13 @@
 import random
 from typing import List
 import openpyxl
-
+import argparse
 
 
 def random_stall(stalls:'list[Stall]'):
     """随机显示档口列表中的一个档口"""
     ind = random.randint(0, len(stalls)-1)
-    print(f"{stalls[ind].cateen_name}{stalls[ind].floor}楼的{stalls[ind].name}")
+    print(f"{stalls[ind].cateen_name}{stalls[ind].floor}楼的{stalls[ind].name}。")
 
 
 class Stall():
@@ -80,44 +80,27 @@ class Cateen():
 
 if __name__ == "__main__":
 
-    """ BUG 各个档口的几率不相同
-
-    # 数据
-    # cateens = ['荔园一食堂', '荔园二食堂', '荔园三食堂', '荔园四食堂']
-    # cateen1_stalls = ['大众菜', '汤饭和蒸饭', 'U包包', '烤肉拌饭', '妈妈菜（东北菜）',
-    #  '西北风味', '二楼自助']
-    # cateen2_stalls = ['大众菜', '牛杂', '蒸菜' ,'啫啫煲', '猪脚饭', '小炒', '煲仔饭',
-    # '二楼东北菜', '潮汕汤面', '三楼自选']
-    # cateen3_stalls = ['大众菜', '饺子', '烧腊', '铁板自选', '麻辣烫', '铁板牛排', '石锅饭']
-    # cateen4_stalls = ['两个早餐档口', '大众菜', '麻辣烫', '杭州小笼包',
-    # '二楼自选', '锡纸饭', '铁板炒饭', '小炒', '二楼广式烧腊',
-    # '肉夹馍', '韩式拌饭', '牛肉饭', '兰州拉面', '西式简餐', '馄饨']
-
-    cateen_choice = random.randint(1, len(cateens))
-    print(cateens[cateen_choice-1])
-    if cateen_choice == 1:  # 荔园一食堂
-        stall_choice = random.randint(0, len(cateen1_stalls)-1)
-        print(cateen1_stalls[stall_choice])
-    elif cateen_choice == 2:  # 荔园二食堂
-        stall_choice = random.randint(0, len(cateen2_stalls)-1)
-        print(cateen2_stalls[stall_choice])
-    elif cateen_choice == 3:  # 荔园三食堂
-        stall_choice = random.randint(0, len(cateen3_stalls)-1)
-        print(cateen3_stalls[stall_choice])
-    elif cateen_choice == 4:  # 荔园四食堂
-        stall_choice = random.randint(0, len(cateen4_stalls)-1)
-        print(cateen4_stalls[stall_choice])
+    ## Argparse脚本
+    """例
+    python hitsz_rondom_meal.py                         # 随机生成一个档口
+    python hitsz_rondom_meal.py 荔园一食堂               # 随机生成一食堂中的一个档口
+    python hitsz_rondom_meal.py 荔园一食堂 荔园二食堂     # 随机生成一食堂或二食堂的一个档口
+    python hitsz_rondom_meal.py --show-all                      # 展示所有档口
+    python hitsz_rondom_meal.py 荔园一食堂 --show-all            # 展示一食堂的所有档口
     """
+    ap = argparse.ArgumentParser()
+    ap.add_argument('cateens', nargs='*', default=['荔园一食堂', '荔园二食堂', '荔园三食堂', '荔园四食堂'], help='限定要在哪些食堂中随机，默认为所有食堂')
+    ap.add_argument('-a', '--show-all', default=False, action='store_const', const=True, help='展示cateens的所有档口')
+    args = ap.parse_args()
+    # print(args.cateens)
+    # print(args.show_all)
 
+
+    ## 一、初始化
+    # 导入表格
     wb = openpyxl.load_workbook('./data.xlsx')
-    print(wb.sheetnames)
+    # print(wb.sheetnames)
     stall_ws = wb['档口表']
-
-    # # for row in ws.iter_rows(min_row=2, max_row=3, min_col=1, max_col=2):
-    # for row in stall_ws.iter_rows():
-    #     for cell in row:
-    #         print(cell.value, end='\t')
-    #     print()
 
     # 初始化食堂
     hit_cateens = []
@@ -127,6 +110,7 @@ if __name__ == "__main__":
         Cateen('荔园三食堂', '哈工大'),
         Cateen('荔园四食堂', '哈工大')
         ])
+    cateen_names = ['荔园一食堂', '荔园二食堂', '荔园三食堂', '荔园四食堂']
 
     # 载入档口数据
     for row in stall_ws.iter_rows(min_row=2):
@@ -141,20 +125,28 @@ if __name__ == "__main__":
             hit_cateens[3].add_stall(stall)
         else:
             print('不属于哈工大食堂')
-            exit(-1)
+            continue
 
-    # 打印
-    for hit_cateen in hit_cateens:
-        hit_cateen.show_stalls()
 
-    # 随机展示档口
-    for hit_cateen in hit_cateens:
-        hit_cateen.random_stall()
+    ## 二、任务执行
+    # 1.打印指定食堂的所有档口
+    if args.show_all is True:
+        for cateen in args.cateens:
+            for i in range(len(cateen_names)):
+                if hit_cateens[i].name == cateen:
+                    hit_cateens[i].show_stalls()
+                    break
 
-    # 随机展示哈工大食堂中的一个档口
-    print("随机展示哈工大食堂中的一个档口：", end='')
-    hit_stalls = []
-    for hit_cateen in hit_cateens:
-        hit_stalls.extend(hit_cateen.stalls)
-
-    random_stall(hit_stalls)
+    # 2.随机展示档口
+    stalls_to_random = []   # 待随机的档口
+    for cateen in args.cateens:
+        for i in range(len(cateen_names)):
+            if hit_cateens[i].name == cateen:
+                stalls_to_random.extend(hit_cateens[i].stalls)
+                break
+    print("- 随机食堂列表：")
+    print(args.cateens)
+    print("- 随机档口列表：")
+    print([stall.name for stall in stalls_to_random])
+    print("- 随机生成的档口为：")
+    random_stall(stalls_to_random)
