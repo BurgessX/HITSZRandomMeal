@@ -124,7 +124,7 @@ if __name__ == "__main__":
         elif stall.cateen_name == '荔园四食堂':
             hit_cateens[3].add_stall(stall)
         else:
-            print('不属于哈工大食堂')
+            print('没有该食堂')
             continue
 
 
@@ -144,9 +144,10 @@ if __name__ == "__main__":
             if hit_cateens[i].name == cateen:
                 stalls_to_random.extend(hit_cateens[i].stalls)
                 break
-    print("- 随机食堂列表：")
-    print(args.cateens)
-    print("- 随机档口列表：")
-    print([stall.name for stall in stalls_to_random])
+
+    # print("- 随机食堂列表：")
+    # print(args.cateens)
+    # print("- 随机档口列表：")
+    # print([stall.name for stall in stalls_to_random])
     print("- 随机生成的档口为：")
     random_stall(stalls_to_random)
