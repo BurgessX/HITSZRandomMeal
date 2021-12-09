@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
     # 载入档口数据
     for row in stall_ws.iter_rows(min_row=2):
-        stall = Stall(row[0].value, row[1].value, row[2].value)
+        stall = Stall(row[1].value, row[2].value, row[3].value) # NOTE 这里容易出现BUG
         if stall.cateen_name == '荔园一食堂':
             hit_cateens[0].add_stall(stall)
         elif stall.cateen_name == '荔园二食堂':
